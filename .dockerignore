@@ -1,0 +1,9 @@
+.git
+.env
+vendor
+node_modules
+.phpunit.cache
+coverage
+storage/smarty/*
+storage/logs/*
+storage/visitor.key

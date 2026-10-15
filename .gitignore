@@ -1,0 +1,11 @@
+/vendor/
+/node_modules/
+/.env
+/.phpunit.cache/
+/coverage/
+/storage/smarty/*
+!/storage/smarty/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+.DS_Store
+/storage/visitor.key
