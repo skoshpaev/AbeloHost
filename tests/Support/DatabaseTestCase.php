@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Support;
@@ -18,7 +19,7 @@ abstract class DatabaseTestCase extends TestCase
     {
         parent::setUp();
         $this->pdo = Database::connect();
-        $database = (string) $this->pdo->query('SELECT DATABASE()')->fetchColumn();
+        $database = (string)$this->pdo->query('SELECT DATABASE()')->fetchColumn();
         if (!str_ends_with($database, '_test')) {
             throw new RuntimeException('Destructive tests require a database ending in _test.');
         }
@@ -38,4 +39,15 @@ abstract class DatabaseTestCase extends TestCase
         return (new Seeder($this->pdo, dirname(__DIR__, 2) . '/database/fixtures/blog.php'))->seed();
     }
 
+    protected function id(string $table, string $slug): int
+    {
+        if (!in_array($table, ['articles', 'categories'], true)) {
+            throw new RuntimeException('Unexpected table.');
+        }
+
+        $statement = $this->pdo->prepare("SELECT id FROM {$table} WHERE slug = :slug");
+        $statement->execute(['slug' => $slug]);
+
+        return (int)$statement->fetchColumn();
+    }
 }
