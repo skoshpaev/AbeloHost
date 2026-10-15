@@ -8,6 +8,7 @@
             <file>tests/Unit/RouterTest.php</file>
             <file>tests/Unit/TransactionRunnerTest.php</file>
             <file>tests/Unit/PaginationTest.php</file>
+            <file>tests/Unit/VisitorIdentityTest.php</file>
         </testsuite>
     </testsuites>
     <source><include><directory>src</directory></include></source>

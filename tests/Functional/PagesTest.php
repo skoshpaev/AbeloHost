@@ -1,10 +1,12 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Tests\Functional;
 
 use DOMDocument;
 use DOMXPath;
+use RuntimeException;
 use Tests\Support\DatabaseTestCase;
 
 final class PagesTest extends DatabaseTestCase
@@ -19,10 +21,15 @@ final class PagesTest extends DatabaseTestCase
         self::assertIsResource($socket);
         $address = stream_socket_get_name($socket, false);
         fclose($socket);
+        /** @noinspection HttpUrlsUsage */
         self::$baseUrl = 'http://' . $address;
         self::$logFile = tempnam(sys_get_temp_dir(), 'blog-http-');
         self::$server = proc_open([
-            PHP_BINARY, '-S', $address, '-t', dirname(__DIR__, 2) . '/public',
+            PHP_BINARY,
+            '-S',
+            $address,
+            '-t',
+            dirname(__DIR__, 2) . '/public',
             dirname(__DIR__) . '/Support/http-router.php',
         ], [1 => ['file', self::$logFile, 'a'], 2 => ['file', self::$logFile, 'a']], $pipes);
         self::assertIsResource(self::$server);
@@ -34,7 +41,7 @@ final class PagesTest extends DatabaseTestCase
             }
             usleep(20_000);
         }
-        throw new \RuntimeException('Test HTTP server failed to start: ' . file_get_contents(self::$logFile));
+        throw new RuntimeException('Test HTTP server failed to start: ' . file_get_contents(self::$logFile));
     }
 
     public static function tearDownAfterClass(): void
@@ -50,10 +57,14 @@ final class PagesTest extends DatabaseTestCase
 
     private function request(string $path, string $method = 'GET', string $cookie = ''): array
     {
-        $context = stream_context_create(['http' => [
-            'method' => $method, 'ignore_errors' => true, 'timeout' => 10,
-            'header' => $cookie === '' ? '' : 'Cookie: blog_visitor=' . $cookie,
-        ]]);
+        $context = stream_context_create([
+            'http' => [
+                'method' => $method,
+                'ignore_errors' => true,
+                'timeout' => 10,
+                'header' => $cookie === '' ? '' : 'Cookie: blog_visitor=' . $cookie,
+            ],
+        ]);
         $stream = fopen(self::$baseUrl . $path, 'r', false, $context);
         self::assertIsResource($stream);
         $headers = stream_get_meta_data($stream)['wrapper_data'];
@@ -61,7 +72,7 @@ final class PagesTest extends DatabaseTestCase
         fclose($stream);
         self::assertIsString($body);
         preg_match('/^HTTP\/\S+ (\d+)/', $headers[0], $match);
-        return ['status' => (int) $match[1], 'headers' => implode("\n", $headers), 'body' => $body];
+        return ['status' => (int)$match[1], 'headers' => implode("\n", $headers), 'body' => $body];
     }
 
     private function xpath(string $body): DOMXPath
@@ -74,6 +85,13 @@ final class PagesTest extends DatabaseTestCase
         return new DOMXPath($document);
     }
 
+    private function storedViews(): int
+    {
+        $statement = $this->pdo->prepare('SELECT views FROM articles WHERE slug = :slug');
+        $statement->execute(['slug' => 'technology-1']);
+        return (int)$statement->fetchColumn();
+    }
+
     public function testHomeListsAllPopulatedCategoriesAndTheirThreeArticles(): void
     {
         $response = $this->request('/');
@@ -81,7 +99,10 @@ final class PagesTest extends DatabaseTestCase
         $xpath = $this->xpath($response['body']);
         self::assertSame(5, $xpath->query('//section[contains(@class,"category-section")]')->length);
         self::assertSame(15, $xpath->query('//article[@class="article-card"]')->length);
-        self::assertSame(5, $xpath->query('//section[contains(@class,"category-section")]//a[contains(@class,"button")]')->length);
+        self::assertSame(
+            5,
+            $xpath->query('//section[contains(@class,"category-section")]//a[contains(@class,"button")]')->length
+        );
         self::assertStringNotContainsString('/categories/notebook', $response['body']);
         self::assertStringNotContainsString('a-look-ahead', $response['body']);
     }
@@ -92,7 +113,11 @@ final class PagesTest extends DatabaseTestCase
         self::assertSame(200, $response['status']);
         $xpath = $this->xpath($response['body']);
         self::assertSame(9, $xpath->query('//article[@class="article-card"]')->length);
-        self::assertSame('/articles/technology-12', $xpath->query('//article[@class="article-card"][1]/h3/a')->item(0)->getAttribute('href'));
+        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
+        self::assertSame(
+            '/articles/technology-12',
+            $xpath->query('//article[@class="article-card"][1]/h3/a')->item(0)->getAttribute('href')
+        );
         self::assertStringContainsString('sort=views&amp;page=2', $response['body']);
         $second = $this->request('/categories/technology?sort=views&page=2');
         self::assertSame(200, $second['status']);
@@ -101,17 +126,28 @@ final class PagesTest extends DatabaseTestCase
 
     public function testArticleShowsAllFieldsWithoutChangingStoredViews(): void
     {
-        $before = $this->pdo->query("SELECT views FROM articles WHERE slug = 'technology-1'")->fetchColumn();
+        $before = $this->storedViews();
         $response = $this->request('/articles/technology-1');
         self::assertSame(200, $response['status']);
         $xpath = $this->xpath($response['body']);
         self::assertSame(2, $xpath->query('//div[@class="article-tags"]/a')->length);
         self::assertSame(5, $xpath->query('//div[@class="article-body"]/p')->length);
         self::assertSame(3, $xpath->query('//section[contains(@class,"related-section")]//article')->length);
-        self::assertStringContainsString('Просмотры: 120', $response['body']);
+        self::assertStringContainsString('Просмотры: 121', $response['body']);
         self::assertStringContainsString('/assets/images/technology-1.svg', $response['body']);
         self::assertStringContainsString('2026-09-28 10:00:00', $response['body']);
-        self::assertSame($before, $this->pdo->query("SELECT views FROM articles WHERE slug = 'technology-1'")->fetchColumn());
+        self::assertSame($before, $this->storedViews());
+    }
+
+    public function testRepeatArticleRequestWithSameCookieDoesNotAddAnotherView(): void
+    {
+        $first = $this->request('/articles/technology-1');
+        self::assertStringContainsString('Просмотры: 121', $first['body']);
+        preg_match('/^Set-Cookie: blog_visitor=([^;]+)/mi', $first['headers'], $match);
+        self::assertArrayHasKey(1, $match);
+        $second = $this->request('/articles/technology-1', 'GET', $match[1]);
+        self::assertStringContainsString('Просмотры: 121', $second['body']);
+        self::assertSame(120, $this->storedViews());
     }
 
     public function testEmptyCategoryIsStillAccessible(): void
@@ -124,10 +160,25 @@ final class PagesTest extends DatabaseTestCase
 
     public function testNotFoundAndInvalidParameters(): void
     {
-        foreach (['/missing', '/categories/missing', '/articles/missing', '/articles/a-look-ahead', '/categories/technology?page=99'] as $path) {
+        foreach (
+            [
+                '/missing',
+                '/categories/missing',
+                '/articles/missing',
+                '/articles/a-look-ahead',
+                '/categories/technology?page=99',
+            ] as $path
+        ) {
             self::assertSame(404, $this->request($path)['status'], $path);
         }
-        foreach (['/categories/technology?page=0', '/categories/technology?page[]=1', '/categories/technology?sort=bad', '/categories/technology?sort[]=views'] as $path) {
+        foreach (
+            [
+                '/categories/technology?page=0',
+                '/categories/technology?page[]=1',
+                '/categories/technology?sort=bad',
+                '/categories/technology?sort[]=views',
+            ] as $path
+        ) {
             self::assertSame(400, $this->request($path)['status'], $path);
         }
         $response = $this->request('/', 'POST');
@@ -141,6 +192,7 @@ final class PagesTest extends DatabaseTestCase
         self::assertSame(200, $response['status']);
         self::assertSame('', $response['body']);
         self::assertStringContainsString('Cache-Control: no-store', $response['headers']);
+        /** @noinspection SpellCheckingInspection */
         self::assertStringContainsString('X-Content-Type-Options: nosniff', $response['headers']);
         self::assertStringContainsString('X-Frame-Options: DENY', $response['headers']);
         self::assertStringContainsString('Content-Security-Policy:', $response['headers']);
@@ -151,8 +203,12 @@ final class PagesTest extends DatabaseTestCase
     public function testUserContentIsEscapedIncludingSmartySyntax(): void
     {
         $payload = '<script>alert("x")</script> {include file="secret.tpl"}';
-        $statement = $this->pdo->prepare("UPDATE articles SET title = :title, description = :description, body = :body WHERE slug = 'technology-1'");
-        $statement->execute(['title' => $payload, 'description' => $payload, 'body' => $payload]);
+        $statement = $this->pdo->prepare(
+            'UPDATE articles SET title = :title, description = :description, body = :body WHERE slug = :slug'
+        );
+        $statement->execute(
+            ['title' => $payload, 'description' => $payload, 'body' => $payload, 'slug' => 'technology-1']
+        );
         $response = $this->request('/articles/technology-1');
         self::assertSame(200, $response['status']);
         self::assertStringNotContainsString('<script>', $response['body']);
@@ -163,6 +219,7 @@ final class PagesTest extends DatabaseTestCase
     public function testAssetsAndHealthAreAvailable(): void
     {
         $home = $this->request('/');
+        /** @noinspection PhpPossiblePolymorphicInvocationInspection */
         $stylesheet = $this->xpath($home['body'])->query('//link[@rel="stylesheet"]')->item(0)->getAttribute('href');
         self::assertMatchesRegularExpression('~^/assets/css/main\.css\?v=\d+$~', $stylesheet);
         self::assertSame(200, $this->request($stylesheet)['status']);

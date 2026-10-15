@@ -12,6 +12,7 @@
             <file>tests/Integration/CategoryPageTest.php</file>
             <file>tests/Integration/ArticleServiceTest.php</file>
             <file>tests/Integration/ArticlePageTest.php</file>
+            <file>tests/Integration/ViewCountingTest.php</file>
             <file>tests/Functional/PagesTest.php</file>
         </testsuite>
     </testsuites>
@@ -23,5 +24,9 @@
         <env name="DB_DATABASE" value="blog_test" force="true"/>
         <env name="DB_USERNAME" value="blog_test" force="true"/>
         <env name="DB_PASSWORD" value="local-test-password" force="true"/>
+        <env name="REDIS_HOST" value="redis-test" force="true"/>
+        <env name="REDIS_PORT" value="6379" force="true"/>
+        <env name="REDIS_DATABASE" value="0" force="true"/>
+        <env name="VISITOR_SECRET" value="test-only-visitor-secret-at-least-thirty-two-bytes" force="true"/>
     </php>
 </phpunit>

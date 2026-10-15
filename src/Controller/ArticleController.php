@@ -9,12 +9,14 @@ use App\Http\Request;
 use App\Http\Response;
 use App\Infrastructure\SmartyRenderer;
 use App\Repository\ArticleRepository;
+use App\Service\ViewTracker\Api\ViewTrackerServiceInterface;
 
 final class ArticleController
 {
     public function __construct(
         private readonly ArticleRepository $articlesRepository,
         private readonly SmartyRenderer $renderer,
+        private readonly ViewTrackerServiceInterface $viewsTracker,
     ) {
     }
 
@@ -30,6 +32,10 @@ final class ArticleController
             throw new HttpException(404, 'Статья не найдена.');
         }
 
+        $view = $this->viewsTracker->track($request, (int)$data['article']['id'], (int)$data['article']['views']);
+        $data['article']['views'] = $view['views'];
+        $data['similar'] = $this->viewsTracker->display($data['similar']);
+
         return new Response(
             $this->renderer->render(
                 'article.tpl',
@@ -38,7 +44,7 @@ final class ArticleController
                     'page_description' => $data['article']['description'],
                     'paragraphs'       => preg_split('/\R{2,}/u', trim($data['article']['body'])) ?: [],
                 ]
-            ), 200, ['Content-Type' => 'text/html; charset=UTF-8']
+            ), 200, $view['headers'] + ['Content-Type' => 'text/html; charset=UTF-8']
         );
     }
 }

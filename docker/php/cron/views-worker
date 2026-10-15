@@ -1,0 +1,3 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+*/30 * * * * root cd /app && /usr/bin/flock -n /tmp/views-worker.lock /usr/local/bin/php /app/bin/flush-views.php >> /proc/1/fd/1 2>> /proc/1/fd/2

@@ -8,13 +8,15 @@ use App\Http\Request;
 use App\Http\Response;
 use App\Infrastructure\SmartyRenderer;
 use App\Model\Pagination;
-use App\Service\CategoryService;
+use App\Service\Category\Api\CategoryServiceInterface;
+use App\Service\ViewTracker\Api\ViewTrackerServiceInterface;
 
 final class CategoryController
 {
     public function __construct(
-        private readonly CategoryService $categories,
+        private readonly CategoryServiceInterface $categories,
         private readonly SmartyRenderer $renderer,
+        private readonly ViewTrackerServiceInterface $views,
     ) {
     }
 
@@ -31,6 +33,7 @@ final class CategoryController
         if ($data === null) {
             throw new HttpException(404, 'Категория не найдена.');
         }
+        $data['articles'] = $this->views->display($data['articles']);
 
         return new Response($this->renderer->render('category.tpl', $data + [
             'page_title' => $data['category']['name'] . ' — Блог',

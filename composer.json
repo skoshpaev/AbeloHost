@@ -4,10 +4,12 @@
   "type": "project",
   "license": "proprietary",
   "require": {
-    "php": ">=8.1",
+    "php": ">=8.4",
     "ext-pdo": "*",
     "ext-pdo_mysql": "*",
-    "smarty/smarty": "^5.8.5"
+    "smarty/smarty": "^5.8.5",
+    "ext-redis": "*",
+    "ext-ctype": "*"
   },
   "autoload": {
     "psr-4": {
@@ -17,10 +19,11 @@
   "config": {
     "sort-packages": true,
     "platform": {
-      "php": "8.1.0"
+      "php": "8.4.0"
     }
   },
   "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.95",
     "phpunit/phpunit": "^10.5",
     "ext-dom": "*",
     "ext-libxml": "*"
@@ -31,6 +34,8 @@
     }
   },
   "scripts": {
+    "cs:check": "php-cs-fixer check --config=.php-cs-fixer.dist.php",
+    "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
     "test": "phpunit",
     "test:unit": "phpunit --testsuite unit",
     "migrate": "php bin/migrate.php",

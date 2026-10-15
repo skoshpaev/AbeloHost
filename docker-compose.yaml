@@ -1,3 +1,4 @@
+#file: noinspection SpellCheckingInspection
 name: abelohost-blog
 services:
   web:
@@ -64,7 +65,7 @@ services:
       retries: 10
   views-worker:
     image: abelohost-blog-php:local
-    command: ["php", "bin/views-worker.php"]
+    command: ["cron", "-f"]
     restart: unless-stopped
     environment:
       DB_HOST: db
@@ -118,7 +119,7 @@ services:
     tmpfs:
       - /app/storage
       - /app/.phpunit.cache
-    command: ["sh", "-c", "php bin/migrate.php && vendor/bin/phpunit"]
+    command: ["sh", "-c", "php bin/migrate.php && vendor/bin/phpunit && vendor/bin/phpunit --configuration phpunit.integration.xml"]
     depends_on:
       db-test:
         condition: service_healthy

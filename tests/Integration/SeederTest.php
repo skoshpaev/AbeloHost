@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace Tests\Integration;
 
 use App\Infrastructure\Migrator;
-use App\Service\Seeder;
+use App\Service\Seeder\SeederService;
 use PDOException;
 use Tests\Support\DatabaseTestCase;
 
@@ -13,10 +13,16 @@ final class SeederTest extends DatabaseTestCase
     public function testRepeatedSeedPreservesExistingDataAndViews(): void
     {
         $links = (int) $this->pdo->query('SELECT COUNT(*) FROM article_category')->fetchColumn();
-        $this->pdo->exec("UPDATE articles SET views = 9876, title = 'Edited title' WHERE slug = 'technology-1'");
+        $this->pdo->prepare('UPDATE articles SET views = :views, title = :title WHERE slug = :slug')->execute([
+            'views' => 9876,
+            'title' => 'Edited title',
+            'slug' => 'technology-1',
+        ]);
         self::assertSame(['categories' => 6, 'articles' => 61], $this->seed());
         self::assertSame($links, (int) $this->pdo->query('SELECT COUNT(*) FROM article_category')->fetchColumn());
-        self::assertSame(['views' => 9876, 'title' => 'Edited title'], $this->pdo->query("SELECT views, title FROM articles WHERE slug = 'technology-1'")->fetch());
+        $article = $this->pdo->prepare('SELECT views, title FROM articles WHERE slug = :slug');
+        $article->execute(['slug' => 'technology-1']);
+        self::assertSame(['views' => 9876, 'title' => 'Edited title'], $article->fetch());
         self::assertSame(0, (int) $this->pdo->query('SELECT COUNT(*) FROM articles a WHERE NOT EXISTS (SELECT 1 FROM article_category ac WHERE ac.article_id = a.id)')->fetchColumn());
     }
 
@@ -28,7 +34,7 @@ final class SeederTest extends DatabaseTestCase
         $file = tempnam(sys_get_temp_dir(), 'blog-fixture-');
         file_put_contents($file, '<?php return ' . var_export($fixtures, true) . ';');
         try {
-            (new Seeder($this->pdo, $file))->seed();
+            new SeederService($this->pdo, $file)->seed();
             self::fail('Invalid seed should fail.');
         } catch (PDOException $error) {
             self::assertSame(1406, (int) $error->errorInfo[1]);
@@ -64,7 +70,7 @@ final class SeederTest extends DatabaseTestCase
     public function testMigrationsAreRepeatable(): void
     {
         $appliedBefore = (int) $this->pdo->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn();
-        (new Migrator($this->pdo, dirname(__DIR__, 2) . '/database/migrations'))->migrate();
+        new Migrator($this->pdo, dirname(__DIR__, 2) . '/database/migrations')->migrate();
         self::assertSame($appliedBefore, (int) $this->pdo->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn());
         self::assertSame(61, (int) $this->pdo->query('SELECT COUNT(*) FROM articles')->fetchColumn());
     }

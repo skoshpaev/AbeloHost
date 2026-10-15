@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use PDO;
+use Throwable;
 
 final class ArticleRepository
 {
@@ -13,6 +14,7 @@ final class ArticleRepository
     public function __construct(
         private readonly PDO $pdo,
         ?string $publishedUntil = null,
+        private readonly ?RedisViewBufferRepository $viewBuffer = null,
     ) {
         $this->publishedUntil = $publishedUntil ?? gmdate('Y-m-d H:i:s');
     }
@@ -46,6 +48,7 @@ final class ArticleRepository
     public function getHomePageData(): array
     {
         $groups = $this->latestByCategory();
+        $groups = $this->applyLiveViews($groups);
         $categories = [];
         foreach ($groups as $categoryId => $posts) {
             $first = $posts[0];
@@ -59,6 +62,37 @@ final class ArticleRepository
         }
 
         return ['categories' => $categories, 'groups' => $groups];
+    }
+
+    private function applyLiveViews(array $groups): array
+    {
+        if ($this->viewBuffer === null) {
+            return $groups;
+        }
+
+        $fallback = [];
+        foreach ($groups as $articles) {
+            foreach ($articles as $article) {
+                $fallback[(int)$article['id']] = (int)$article['views'];
+            }
+        }
+
+        try {
+            $totals = $this->viewBuffer->totals($fallback);
+        } catch (Throwable $error) {
+            error_log('Home page view totals unavailable: ' . $error->getMessage());
+            return $groups;
+        }
+
+        foreach ($groups as &$articles) {
+            foreach ($articles as &$article) {
+                $article['views'] = $totals[(int)$article['id']] ?? (int)$article['views'];
+            }
+            unset($article);
+        }
+        unset($articles);
+
+        return $groups;
     }
 
     public function findBySlug(string $slug): ?array

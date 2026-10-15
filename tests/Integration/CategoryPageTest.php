@@ -34,7 +34,9 @@ final class CategoryPageTest extends DatabaseTestCase
     {
         $secondPage = $this->page('technology', ['page' => '2']);
         self::assertSame(200, $secondPage->status);
-        self::assertStringContainsString((string) $this->pdo->query("SELECT title FROM articles WHERE slug = 'technology-8'")->fetchColumn(), $secondPage->body);
+        $title = $this->pdo->prepare('SELECT title FROM articles WHERE slug = :slug');
+        $title->execute(['slug' => 'technology-8']);
+        self::assertStringContainsString((string)$title->fetchColumn(), $secondPage->body);
         $document = new DOMDocument();
         $document->loadHTML('<?xml encoding="UTF-8">' . $secondPage->body, LIBXML_NOERROR | LIBXML_NOWARNING);
         self::assertCount(6, (new DOMXPath($document))->query('//main/article'));

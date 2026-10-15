@@ -3,19 +3,21 @@ declare(strict_types=1);
 
 namespace App\Http;
 
-final class Request
+final readonly class Request
 {
     public function __construct(
-        public readonly string $method,
-        public readonly string $path,
-        public readonly array $query = [],
-        public readonly array $routeParameters = [],
+        public string $method,
+        public string $path,
+        public array $query = [],
+        public array $routeParameters = [],
+        public array $cookies = [],
+        public bool $secure = false,
     ) {
     }
 
     public function withRouteParameters(array $parameters): self
     {
-        return new self($this->method, $this->path, $this->query, $parameters);
+        return new self($this->method, $this->path, $this->query, $parameters, $this->cookies, $this->secure);
     }
 
     public function routeParameter(string $name): ?string
@@ -31,6 +33,9 @@ final class Request
             strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'),
             is_string($path) ? $path : '/',
             $_GET,
+            [],
+            $_COOKIE,
+            isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && strtolower((string) $_SERVER['HTTPS']) !== 'off',
         );
     }
 }

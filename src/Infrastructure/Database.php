@@ -13,7 +13,7 @@ final class Database
         $port = getenv('DB_PORT') ?: '3306';
         $database = getenv('DB_DATABASE') ?: 'blog';
         $pdo = new PDO(
-            "mysql:host={$host};port={$port};dbname={$database};charset=utf8mb4",
+            "mysql:host=$host;port=$port;dbname=$database;charset=utf8mb4",
             getenv('DB_USERNAME') ?: 'blog',
             getenv('DB_PASSWORD') ?: 'local-blog-password',
             [
@@ -24,7 +24,8 @@ final class Database
                 PDO::ATTR_TIMEOUT => 5,
             ]
         );
-        $pdo->exec("SET time_zone = '+00:00'");
+        $timezone = $pdo->prepare('SET time_zone = :timezone');
+        $timezone->execute(['timezone' => '+00:00']);
         $pdo->exec('SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ');
         $pdo->exec('SET SESSION innodb_lock_wait_timeout = 5');
         return $pdo;

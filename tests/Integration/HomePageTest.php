@@ -34,7 +34,9 @@ final class HomePageTest extends DatabaseTestCase
             'Заметки',
             array_map(static fn($node): string => $node->textContent, iterator_to_array($xpath->query('//section//h2')))
         );
-        $futureTitle = $this->pdo->query("SELECT title FROM articles WHERE slug = 'a-look-ahead'")->fetchColumn();
+        $future = $this->pdo->prepare('SELECT title FROM articles WHERE slug = :slug');
+        $future->execute(['slug' => 'a-look-ahead']);
+        $futureTitle = $future->fetchColumn();
         self::assertStringNotContainsString($futureTitle, $response->body);
     }
 
@@ -49,8 +51,12 @@ final class HomePageTest extends DatabaseTestCase
 
     public function testEscapesDatabaseContent(): void
     {
-        $this->pdo->exec("UPDATE categories SET name = '<script>category</script>' WHERE slug = 'technology'");
-        $this->pdo->exec("UPDATE articles SET title = '<script>article</script>' WHERE slug = 'technology-1'");
+        $category = $this->pdo->prepare('UPDATE categories SET name = :name WHERE slug = :slug');
+        /** @noinspection JSUnresolvedReference */
+        $category->execute(['name' => '<script>category</script>', 'slug' => 'technology']);
+        $article = $this->pdo->prepare('UPDATE articles SET title = :title WHERE slug = :slug');
+        /** @noinspection JSUnresolvedReference */
+        $article->execute(['title' => '<script>article</script>', 'slug' => 'technology-1']);
         $body = $this->home()->body;
         self::assertStringNotContainsString('<script>', $body);
         self::assertStringContainsString('&lt;script&gt;category&lt;/script&gt;', $body);

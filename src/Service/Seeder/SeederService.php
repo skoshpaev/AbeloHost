@@ -1,19 +1,27 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Service;
+namespace App\Service\Seeder;
 
 use App\Infrastructure\NamedLock;
 use App\Infrastructure\TransactionRunner;
+use App\Service\Seeder\Api\SeederServiceInterface;
 use PDO;
 use RuntimeException;
+use Throwable;
 
-final class Seeder
+final readonly class SeederService implements SeederServiceInterface
 {
-    public function __construct(private PDO $pdo, private string $fixtureFile)
+    public function __construct(
+        private PDO $pdo,
+        private string $fixtureFile,
+    )
     {
     }
 
+    /**
+     * @throws Throwable
+     */
     public function seed(): array
     {
         $fixtures = require $this->fixtureFile;
@@ -23,12 +31,13 @@ final class Seeder
             }
             foreach ($article['categories'] as $slug) {
                 if (!isset($fixtures['categories'][$slug])) {
-                    throw new RuntimeException("Unknown fixture category {$slug}.");
+                    throw new RuntimeException("Unknown fixture category $slug.");
                 }
             }
         }
-        return (new NamedLock($this->pdo))->run('maintenance', function () use ($fixtures): array {
-            return (new TransactionRunner($this->pdo))->run(function () use ($fixtures): array {
+        return new NamedLock($this->pdo)->run(
+            'maintenance', function () use ($fixtures): array {
+            return new TransactionRunner($this->pdo)->run(function () use ($fixtures): array {
                 $categoryIds = [];
                 $insertCategory = $this->pdo->prepare('INSERT INTO categories (slug, name, description)
                     VALUES (:slug, :name, :description) ON DUPLICATE KEY UPDATE id = categories.id');

@@ -5,18 +5,17 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Http\HttpException;
-use App\Http\Request;
 use App\Http\Response;
-use App\Service\HealthService;
+use App\Service\Health\Api\HealthServiceInterface;
 use PDOException;
 
-final class HealthController
+final readonly class HealthController
 {
-    public function __construct(private readonly HealthService $health)
+    public function __construct(private HealthServiceInterface $health)
     {
     }
 
-    public function index(Request $request): Response
+    public function index(): Response
     {
         try {
             $this->health->check();

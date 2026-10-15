@@ -26,6 +26,8 @@ final class ArticlePageTest extends DatabaseTestCase
         self::assertSame(200, $response->status);
         self::assertStringContainsString('Технологии, которые оставляют время для жизни', $response->body);
         self::assertStringContainsString('Просмотров:', $response->body);
+        self::assertStringContainsString('Просмотры: 121', $response->body);
+        self::assertStringContainsString('Max-Age=86400', $response->headers['Set-Cookie']);
 
         $document = new DOMDocument();
         $document->loadHTML('<?xml encoding="UTF-8">' . $response->body, LIBXML_NOERROR | LIBXML_NOWARNING);
@@ -37,7 +39,7 @@ final class ArticlePageTest extends DatabaseTestCase
     public function testMissingAndUnpublishedArticlesReturnNotFound(): void
     {
         self::assertSame(404, $this->page('missing')->status);
-        $this->pdo->exec("UPDATE articles SET published_at = '2099-01-01 00:00:00' WHERE 1");
+        $this->pdo->prepare('UPDATE articles SET published_at = :published_at')->execute(['published_at' => '2099-01-01 00:00:00']);
         self::assertSame(404, $this->page('technology-1')->status);
     }
 }

@@ -4,26 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Http\Request;
 use App\Http\Response;
 use App\Infrastructure\SmartyRenderer;
-use App\Service\HomeService;
-use Throwable;
+use App\Repository\ArticleRepository;
 
-final class HomeController
+final readonly class HomeController
 {
     public function __construct(
-        private readonly HomeService $home,
-        private readonly SmartyRenderer $renderer,
+        private SmartyRenderer $renderer,
+        private ArticleRepository $articles
     ) {
     }
 
-    /**
-     * @throws Throwable
-     */
-    public function index(Request $request): Response
+    public function index(): Response
     {
-        $data = $this->home->getPage();
+        $data = $this->articles->getHomePageData();
 
         return new Response($this->renderer->render('home.tpl', $data), 200, [
             'Content-Type' => 'text/html; charset=UTF-8',
