@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c105625aa629311b797ed3d00f1c6772",
+    "content-hash": "5448e6e75d66ae2c2f33d116b9d13f10",
     "packages": [
         {
             "name": "smarty/smarty",
@@ -1832,7 +1832,10 @@
         "ext-pdo": "*",
         "ext-pdo_mysql": "*"
     },
-    "platform-dev": {},
+    "platform-dev": {
+        "ext-dom": "*",
+        "ext-libxml": "*"
+    },
     "platform-overrides": {
         "php": "8.1.0"
     },
