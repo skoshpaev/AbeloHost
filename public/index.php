@@ -1,21 +1,18 @@
 <?php
 declare(strict_types=1);
 
-use App\Http\HttpException;
 use App\Http\Request;
-use App\Http\Response;
 
-$router = require dirname(__DIR__) . '/config/bootstrap.php';
-
-$request = Request::fromGlobals();
 try {
-    $response = $router->dispatch($request);
-} catch (HttpException $error) {
-    $headers = ['Content-Type' => 'text/plain; charset=UTF-8'];
-    if ($error->status === 405) {
-        $headers['Allow'] = 'GET, HEAD';
+    $application = require dirname(__DIR__) . '/config/bootstrap.php';
+    $request = Request::fromGlobals();
+    $application->handle($request)->send($request->method === 'HEAD');
+} catch (Throwable $error) {
+    error_log((string) $error);
+    http_response_code(500);
+    header('Content-Type: text/plain; charset=UTF-8');
+    header('Cache-Control: no-store');
+    if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'HEAD') {
+        echo 'Не удалось открыть страницу. Попробуйте немного позже.';
     }
-    $response = new Response($error->getMessage(), $error->status, $headers);
 }
-
-$response->send($request->method === 'HEAD');

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 use App\Controller\HomeController;
+use App\Http\Application;
 use App\Http\Router;
 use App\Infrastructure\SmartyRenderer;
 
@@ -15,4 +16,4 @@ $router = new Router();
 
 require __DIR__ . '/routes.php';
 
-return $router;
+return new Application($router, $renderer);
