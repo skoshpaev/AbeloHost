@@ -39,7 +39,7 @@ final class ArticlePageTest extends DatabaseTestCase
     public function testMissingAndUnpublishedArticlesReturnNotFound(): void
     {
         self::assertSame(404, $this->page('missing')->status);
-        $this->pdo->prepare('UPDATE articles SET published_at = :published_at')->execute(['published_at' => '2099-01-01 00:00:00']);
+        $this->pdo->prepare('UPDATE articles SET published_at = :published_at WHERE 1')->execute(['published_at' => '2099-01-01 00:00:00']);
         self::assertSame(404, $this->page('technology-1')->status);
     }
 }

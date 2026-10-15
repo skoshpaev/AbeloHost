@@ -11,12 +11,12 @@ use App\Model\Pagination;
 use App\Service\Category\Api\CategoryServiceInterface;
 use App\Service\ViewTracker\Api\ViewTrackerServiceInterface;
 
-final class CategoryController
+final readonly class CategoryController
 {
     public function __construct(
-        private readonly CategoryServiceInterface $categories,
-        private readonly SmartyRenderer $renderer,
-        private readonly ViewTrackerServiceInterface $views,
+        private CategoryServiceInterface $categories,
+        private SmartyRenderer $renderer,
+        private ViewTrackerServiceInterface $views,
     ) {
     }
 

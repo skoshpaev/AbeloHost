@@ -12,7 +12,7 @@ final readonly class CategoryService implements CategoryServiceInterface
     public function __construct(
         private CategoryRepository $categories,
     ) {
-    }˚
+    }
 
     public function getPage(string $slug, int $page, string $sort): ?array
     {

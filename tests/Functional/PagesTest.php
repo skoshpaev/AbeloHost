@@ -192,7 +192,6 @@ final class PagesTest extends DatabaseTestCase
         self::assertSame(200, $response['status']);
         self::assertSame('', $response['body']);
         self::assertStringContainsString('Cache-Control: no-store', $response['headers']);
-        /** @noinspection SpellCheckingInspection */
         self::assertStringContainsString('X-Content-Type-Options: nosniff', $response['headers']);
         self::assertStringContainsString('X-Frame-Options: DENY', $response['headers']);
         self::assertStringContainsString('Content-Security-Policy:', $response['headers']);

@@ -32,7 +32,7 @@ final class CategoryServiceTest extends DatabaseTestCase
     {
         $items = $this->service()->getPage('technology', 1, 'views')['articles'];
         self::assertSame(['technology-12', 'technology-11', 'life-9'], array_slice(array_column($items, 'slug'), 0, 3));
-        $this->pdo->prepare('UPDATE articles SET views = :views, published_at = :published_at')->execute([
+        $this->pdo->prepare('UPDATE articles SET views = :views, published_at = :published_at WHERE 1')->execute([
             'views' => 10,
             'published_at' => '2026-01-01 00:00:00',
         ]);
@@ -61,7 +61,7 @@ final class CategoryServiceTest extends DatabaseTestCase
         self::assertSame(0, $empty['pagination']['total']);
         self::assertSame(1, $empty['pagination']['pages']);
         self::assertSame([], $empty['articles']);
-        $this->pdo->prepare('UPDATE articles SET published_at = :published_at')->execute(['published_at' => '2099-01-01 00:00:00']);
+        $this->pdo->prepare('UPDATE articles SET published_at = :published_at WHERE  1')->execute(['published_at' => '2099-01-01 00:00:00']);
         self::assertSame([], $this->service($cutoff)->getPage('technology', 1, 'date')['articles']);
     }
 
