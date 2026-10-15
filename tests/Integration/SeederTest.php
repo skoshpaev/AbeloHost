@@ -63,8 +63,9 @@ final class SeederTest extends DatabaseTestCase
 
     public function testMigrationsAreRepeatable(): void
     {
+        $appliedBefore = (int) $this->pdo->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn();
         (new Migrator($this->pdo, dirname(__DIR__, 2) . '/database/migrations'))->migrate();
-        self::assertSame(1, (int) $this->pdo->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn());
+        self::assertSame($appliedBefore, (int) $this->pdo->query('SELECT COUNT(*) FROM schema_migrations')->fetchColumn());
         self::assertSame(61, (int) $this->pdo->query('SELECT COUNT(*) FROM articles')->fetchColumn());
     }
 }

@@ -12,6 +12,7 @@
             <file>tests/Integration/CategoryPageTest.php</file>
             <file>tests/Integration/ArticleServiceTest.php</file>
             <file>tests/Integration/ArticlePageTest.php</file>
+            <file>tests/Functional/PagesTest.php</file>
         </testsuite>
     </testsuites>
     <source><include><directory>src</directory></include></source>
