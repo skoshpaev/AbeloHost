@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
-use InvalidArgumentException;
 use PDO;
 
 final class ArticleRepository
@@ -44,6 +43,24 @@ final class ArticleRepository
         return $groups;
     }
 
+    public function getHomePageData(): array
+    {
+        $groups = $this->latestByCategory();
+        $categories = [];
+        foreach ($groups as $categoryId => $posts) {
+            $first = $posts[0];
+            $categories[] = [
+                'id' => $categoryId,
+                'slug' => $first['category_slug'],
+                'name' => $first['category_name'],
+                'description' => $first['category_description'],
+                'article_count' => $first['article_count'],
+            ];
+        }
+
+        return ['categories' => $categories, 'groups' => $groups];
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $statement = $this->pdo->prepare(
@@ -53,6 +70,28 @@ final class ArticleRepository
         $statement->execute(['slug' => $slug, 'published_until' => $this->publishedUntil]);
 
         return $statement->fetch() ?: null;
+    }
+
+    public function getPageData(string $slug): ?array
+    {
+        $article = $this->findBySlug($slug);
+        if ($article === null) {
+            return null;
+        }
+
+        $categories = $this->pdo->prepare(
+            'SELECT c.id, c.slug, c.name, c.description
+            FROM categories c
+            JOIN article_category ac ON ac.category_id = c.id
+            WHERE ac.article_id = :article_id ORDER BY c.id'
+        );
+        $categories->execute(['article_id' => $article['id']]);
+
+        return [
+            'article' => $article,
+            'categories' => $categories->fetchAll(),
+            'similar' => $this->similar((int)$article['id']),
+        ];
     }
 
     public function similar(int $articleId, int $limit = 3): array
@@ -78,38 +117,4 @@ final class ArticleRepository
         return $statement->fetchAll();
     }
 
-    public function countInCategory(int $categoryId): int
-    {
-        $statement = $this->pdo->prepare(
-            'SELECT COUNT(*) FROM articles a
-            JOIN article_category ac ON ac.article_id = a.id
-            WHERE ac.category_id = :id AND a.published_at <= :published_until'
-        );
-        $statement->execute(['id' => $categoryId, 'published_until' => $this->publishedUntil]);
-
-        return (int)$statement->fetchColumn();
-    }
-
-    public function inCategory(int $categoryId, string $sort, int $limit, int $offset): array
-    {
-        $order = match ($sort) {
-            'views' => 'a.views DESC, a.published_at DESC, a.id DESC',
-            'date' => 'a.published_at DESC, a.id DESC',
-            default => throw new InvalidArgumentException('Unknown sort.'),
-        };
-        $statement = $this->pdo->prepare(
-            "SELECT a.id, a.slug, a.image_path, a.title, a.description, a.published_at, a.views
-            FROM articles a JOIN article_category ac ON ac.article_id = a.id
-            WHERE ac.category_id = :id AND a.published_at <= :published_until
-            ORDER BY $order LIMIT :limit OFFSET :offset"
-        );
-        $statement->bindValue('id', $categoryId, PDO::PARAM_INT);
-        $statement->bindValue('published_until', $this->publishedUntil);
-        $statement->bindValue('limit', $limit, PDO::PARAM_INT);
-        $statement->bindValue('offset', $offset, PDO::PARAM_INT);
-
-        $statement->execute();
-
-        return $statement->fetchAll();
-    }
 }

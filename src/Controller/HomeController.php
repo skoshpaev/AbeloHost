@@ -23,7 +23,7 @@ final class HomeController
      */
     public function index(Request $request): Response
     {
-        $data = $this->home->getPageData();
+        $data = $this->home->getPage();
 
         return new Response($this->renderer->render('home.tpl', $data), 200, [
             'Content-Type' => 'text/html; charset=UTF-8',

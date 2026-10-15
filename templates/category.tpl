@@ -16,7 +16,7 @@
     </form>
     {foreach $articles as $article}
         <article>
-            <h2>{$article.title}</h2>
+            <h2><a href="/articles/{$article.slug}">{$article.title}</a></h2>
             <p>{$article.description}</p>
             <time datetime="{$article.published_at}">{$article.published_at}</time>
             <span>Просмотров: {$article.views}</span>

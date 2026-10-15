@@ -27,7 +27,7 @@ final class CategoryController
 
         $page = Pagination::parsePage($request->query['page'] ?? null);
         $sort = Pagination::parseSort($request->query['sort'] ?? null);
-        $data = $this->categories->getPageData($slug, $page, $sort);
+        $data = $this->categories->getPage($slug, $page, $sort);
         if ($data === null) {
             throw new HttpException(404, 'Категория не найдена.');
         }

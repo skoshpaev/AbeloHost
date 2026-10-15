@@ -11,20 +11,8 @@ final class HomeService
     {
     }
 
-    public function getPageData(): array
+    public function getPage(): array
     {
-        $groups = $this->articles->latestByCategory();
-        $categories = [];
-        foreach ($groups as $categoryId => $posts) {
-            $first = $posts[0];
-            $categories[] = [
-                'id' => $categoryId,
-                'slug' => $first['category_slug'],
-                'name' => $first['category_name'],
-                'description' => $first['category_description'],
-                'article_count' => $first['article_count'],
-            ];
-        }
-        return ['categories' => $categories, 'groups' => $groups];
+        return $this->articles->getHomePageData();
     }
 }
