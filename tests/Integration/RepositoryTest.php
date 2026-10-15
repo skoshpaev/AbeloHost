@@ -54,4 +54,17 @@ final class RepositoryTest extends DatabaseTestCase
         self::assertSame([], (new CategoryRepository($this->pdo, $cutoff))->published());
         self::assertSame([], (new ArticleRepository($this->pdo, $cutoff))->latestByCategory());
     }
+
+    public function testHomeLoadsArticlesAndCategoryDetailsInOneSelect(): void
+    {
+        $before = (int) $this->pdo->query("SHOW SESSION STATUS LIKE 'Com_select'")->fetch()['Value'];
+        $groups = (new ArticleRepository($this->pdo))->latestByCategory();
+        $after = (int) $this->pdo->query("SHOW SESSION STATUS LIKE 'Com_select'")->fetch()['Value'];
+        self::assertSame(1, $after - $before);
+        self::assertFalse($this->pdo->inTransaction());
+        $post = $groups[$this->id('categories', 'technology')][0];
+        self::assertSame('technology', $post['category_slug']);
+        self::assertSame('Технологии', $post['category_name']);
+        self::assertSame(15, (int) $post['article_count']);
+    }
 }

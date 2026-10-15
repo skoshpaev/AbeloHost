@@ -7,6 +7,7 @@
         <testsuite name="integration">
             <file>tests/Integration/SeederTest.php</file>
             <file>tests/Integration/RepositoryTest.php</file>
+            <file>tests/Integration/HomePageTest.php</file>
         </testsuite>
     </testsuites>
     <source><include><directory>src</directory></include></source>
