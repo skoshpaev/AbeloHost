@@ -32,6 +32,7 @@
     "test": "phpunit",
     "test:unit": "phpunit --testsuite unit",
     "migrate": "php bin/migrate.php",
-    "seed": "php bin/seed.php"
+    "seed": "php bin/seed.php",
+    "test:integration": "phpunit --configuration phpunit.integration.xml"
   }
 }

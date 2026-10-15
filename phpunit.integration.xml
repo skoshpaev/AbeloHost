@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache"
+         failOnWarning="true" failOnRisky="true" failOnDeprecation="true">
+    <testsuites>
+        <testsuite name="integration">
+            <file>tests/Integration/SeederTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source><include><directory>src</directory></include></source>
+    <php>
+        <env name="APP_ENV" value="test" force="true"/>
+        <env name="DB_HOST" value="db-test" force="true"/>
+        <env name="DB_PORT" value="3306" force="true"/>
+        <env name="DB_DATABASE" value="blog_test" force="true"/>
+        <env name="DB_USERNAME" value="blog_test" force="true"/>
+        <env name="DB_PASSWORD" value="local-test-password" force="true"/>
+    </php>
+</phpunit>
