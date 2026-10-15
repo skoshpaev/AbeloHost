@@ -5,24 +5,20 @@ namespace App\Controller;
 
 use App\Http\Request;
 use App\Http\Response;
+use App\Infrastructure\SmartyRenderer;
 
 final class HomeController
 {
+    public function __construct(private SmartyRenderer $renderer)
+    {
+    }
+
     public function index(Request $request): Response
     {
-        return new Response(<<<'HTML'
-<!doctype html>
-<html lang="ru">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Блог</title>
-</head>
-<body>
-    <h1>Блог</h1>
-    <p>Приложение запущено.</p>
-</body>
-</html>
-HTML, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+        $body = $this->renderer->render('home.tpl', [
+            'heading' => 'Блог',
+            'message' => 'Приложение запущено.',
+        ]);
+        return new Response($body, 200, ['Content-Type' => 'text/html; charset=UTF-8']);
     }
 }
