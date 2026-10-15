@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace App\Repository;
@@ -30,4 +29,11 @@ final class CategoryRepository
         return $statement->fetchAll();
     }
 
+    public function findBySlug(string $slug): ?array
+    {
+        $statement = $this->pdo->prepare('SELECT id, slug, name, description FROM categories WHERE slug = :slug');
+        $statement->execute(['slug' => $slug]);
+
+        return $statement->fetch() ?: null;
+    }
 }
