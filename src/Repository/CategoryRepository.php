@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repository;
@@ -9,8 +10,10 @@ final class CategoryRepository
 {
     private string $publishedUntil;
 
-    public function __construct(private PDO $pdo, ?string $publishedUntil = null)
-    {
+    public function __construct(
+        private readonly PDO $pdo,
+        ?string $publishedUntil = null,
+    ) {
         $this->publishedUntil = $publishedUntil ?? gmdate('Y-m-d H:i:s');
     }
 
@@ -35,5 +38,19 @@ final class CategoryRepository
         $statement->execute(['slug' => $slug]);
 
         return $statement->fetch() ?: null;
+    }
+
+    public function forArticle(int $articleId): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT c.id, c.slug, c.name, c.description
+            FROM categories c
+            JOIN article_category ac ON ac.category_id = c.id
+            WHERE ac.article_id = :article_id
+            ORDER BY c.id'
+        );
+        $statement->execute(['article_id' => $articleId]);
+
+        return $statement->fetchAll();
     }
 }

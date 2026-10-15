@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Http;
@@ -19,8 +20,9 @@ final class Router
                 if (!in_array($request->method, ['GET', 'HEAD'], true)) {
                     throw new HttpException(405, 'Метод запроса не поддерживается.');
                 }
-                $parameters = array_filter($matches, fn ($key): bool => is_string($key), ARRAY_FILTER_USE_KEY);
-                return $handler($request, ...array_values($parameters));
+                $parameters = array_filter($matches, fn($key): bool => is_string($key), ARRAY_FILTER_USE_KEY);
+
+                return $handler($request->withRouteParameters($parameters));
             }
         }
         throw new HttpException(404, 'Страница не найдена.');

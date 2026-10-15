@@ -9,7 +9,19 @@ final class Request
         public readonly string $method,
         public readonly string $path,
         public readonly array $query = [],
+        public readonly array $routeParameters = [],
     ) {
+    }
+
+    public function withRouteParameters(array $parameters): self
+    {
+        return new self($this->method, $this->path, $this->query, $parameters);
+    }
+
+    public function routeParameter(string $name): ?string
+    {
+        $value = $this->routeParameters[$name] ?? null;
+        return is_string($value) ? $value : null;
     }
 
     public static function fromGlobals(): self

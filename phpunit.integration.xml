@@ -9,6 +9,8 @@
             <file>tests/Integration/RepositoryTest.php</file>
             <file>tests/Integration/HomePageTest.php</file>
             <file>tests/Integration/CategoryServiceTest.php</file>
+            <file>tests/Integration/CategoryPageTest.php</file>
+            <file>tests/Integration/ArticleServiceTest.php</file>
         </testsuite>
     </testsuites>
     <source><include><directory>src</directory></include></source>

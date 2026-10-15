@@ -11,8 +11,10 @@ final class ArticleRepository
 {
     private string $publishedUntil;
 
-    public function __construct(private PDO $pdo, ?string $publishedUntil = null)
-    {
+    public function __construct(
+        private readonly PDO $pdo,
+        ?string $publishedUntil = null,
+    ) {
         $this->publishedUntil = $publishedUntil ?? gmdate('Y-m-d H:i:s');
     }
 
@@ -42,6 +44,40 @@ final class ArticleRepository
         return $groups;
     }
 
+    public function findBySlug(string $slug): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id, slug, image_path, title, description, body, published_at, views
+            FROM articles WHERE slug = :slug AND published_at <= :published_until'
+        );
+        $statement->execute(['slug' => $slug, 'published_until' => $this->publishedUntil]);
+
+        return $statement->fetch() ?: null;
+    }
+
+    public function similar(int $articleId, int $limit = 3): array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT a.id, a.slug, a.image_path, a.title, a.description, a.published_at, a.views,
+                COUNT(*) AS shared_categories
+            FROM article_category source
+            JOIN article_category candidate ON candidate.category_id = source.category_id
+            JOIN articles a ON a.id = candidate.article_id
+            WHERE source.article_id = :source_id AND a.id <> :excluded_id
+                AND a.published_at <= :published_until
+            GROUP BY a.id, a.slug, a.image_path, a.title, a.description, a.published_at, a.views
+            ORDER BY shared_categories DESC, a.published_at DESC, a.id DESC
+            LIMIT :limit'
+        );
+        $statement->bindValue('source_id', $articleId, PDO::PARAM_INT);
+        $statement->bindValue('excluded_id', $articleId, PDO::PARAM_INT);
+        $statement->bindValue('published_until', $this->publishedUntil);
+        $statement->bindValue('limit', $limit, PDO::PARAM_INT);
+        $statement->execute();
+
+        return $statement->fetchAll();
+    }
+
     public function countInCategory(int $categoryId): int
     {
         $statement = $this->pdo->prepare(
@@ -65,7 +101,7 @@ final class ArticleRepository
             "SELECT a.id, a.slug, a.image_path, a.title, a.description, a.published_at, a.views
             FROM articles a JOIN article_category ac ON ac.article_id = a.id
             WHERE ac.category_id = :id AND a.published_at <= :published_until
-            ORDER BY {$order} LIMIT :limit OFFSET :offset"
+            ORDER BY $order LIMIT :limit OFFSET :offset"
         );
         $statement->bindValue('id', $categoryId, PDO::PARAM_INT);
         $statement->bindValue('published_until', $this->publishedUntil);
