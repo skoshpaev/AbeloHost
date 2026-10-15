@@ -5,6 +5,8 @@
   "license": "proprietary",
   "require": {
     "php": ">=8.1",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
     "smarty/smarty": "^5.8.5"
   },
   "autoload": {
