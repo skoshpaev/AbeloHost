@@ -25,6 +25,8 @@ final class Database
             ]
         );
         $pdo->exec("SET time_zone = '+00:00'");
+        $pdo->exec('SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+        $pdo->exec('SET SESSION innodb_lock_wait_timeout = 5');
         return $pdo;
     }
 }

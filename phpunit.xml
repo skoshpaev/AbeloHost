@@ -4,7 +4,10 @@
          bootstrap="tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache"
          failOnWarning="true" failOnRisky="true" failOnDeprecation="true">
     <testsuites>
-        <testsuite name="unit"><file>tests/Unit/RouterTest.php</file></testsuite>
+        <testsuite name="unit">
+            <file>tests/Unit/RouterTest.php</file>
+            <file>tests/Unit/TransactionRunnerTest.php</file>
+        </testsuite>
     </testsuites>
     <source><include><directory>src</directory></include></source>
 </phpunit>
