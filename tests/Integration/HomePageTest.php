@@ -32,7 +32,7 @@ final class HomePageTest extends DatabaseTestCase
         }
         self::assertNotContains(
             'Заметки',
-            array_map(static fn($node): string => $node->textContent, iterator_to_array($xpath->query('//section/h2')))
+            array_map(static fn($node): string => $node->textContent, iterator_to_array($xpath->query('//section//h2')))
         );
         $futureTitle = $this->pdo->query("SELECT title FROM articles WHERE slug = 'a-look-ahead'")->fetchColumn();
         self::assertStringNotContainsString($futureTitle, $response->body);
@@ -43,7 +43,7 @@ final class HomePageTest extends DatabaseTestCase
         $this->clearData();
         $response = $this->home();
         self::assertSame(200, $response->status);
-        self::assertStringContainsString('Статей пока нет.', $response->body);
+        self::assertStringContainsString('Скоро здесь появятся первые статьи.', $response->body);
         self::assertStringNotContainsString('<article>', $response->body);
     }
 

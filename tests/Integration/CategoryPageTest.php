@@ -21,13 +21,13 @@ final class CategoryPageTest extends DatabaseTestCase
     {
         $response = $this->page('technology');
         self::assertSame(200, $response->status);
-        self::assertStringContainsString('<h1>Технологии</h1>', $response->body);
-        self::assertStringContainsString('Статей: 15', $response->body);
         $document = new DOMDocument();
         $document->loadHTML('<?xml encoding="UTF-8">' . $response->body, LIBXML_NOERROR | LIBXML_NOWARNING);
         $xpath = new DOMXPath($document);
+        self::assertSame('Технологии✳', trim($xpath->query('//main/header/h1')->item(0)->textContent));
+        self::assertSame('Статей: 15', trim($xpath->query('//main//span[@class="results-count"]')->item(0)->textContent));
         self::assertCount(9, $xpath->query('//main/article'));
-        self::assertSame('Технологии, которые оставляют время для жизни', trim($xpath->query('//main/article[1]/h2')->item(0)->textContent));
+        self::assertSame('Технологии, которые оставляют время для жизни', trim($xpath->query('//main/article[1]/h3')->item(0)->textContent));
     }
 
     public function testPageTwoAndViewSorting(): void
@@ -42,7 +42,7 @@ final class CategoryPageTest extends DatabaseTestCase
         $popular = $this->page('technology', ['sort' => 'views']);
         $document = new DOMDocument();
         $document->loadHTML('<?xml encoding="UTF-8">' . $popular->body, LIBXML_NOERROR | LIBXML_NOWARNING);
-        self::assertSame('Когда хороший инструмент почти незаметен', trim((new DOMXPath($document))->query('//main/article[1]/h2')->item(0)->textContent));
+        self::assertSame('Когда хороший инструмент почти незаметен', trim((new DOMXPath($document))->query('//main/article[1]/h3')->item(0)->textContent));
     }
 
     public function testInvalidCategorySortAndPageReturnClientErrors(): void
@@ -56,7 +56,7 @@ final class CategoryPageTest extends DatabaseTestCase
     {
         $response = $this->page('notebook');
         self::assertSame(200, $response->status);
-        self::assertStringContainsString('В этой категории пока нет опубликованных статей.', $response->body);
+        self::assertStringContainsString('В этой категории ещё нет опубликованных статей.', $response->body);
         self::assertStringNotContainsString('<article>', $response->body);
     }
 }

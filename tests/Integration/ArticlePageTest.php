@@ -30,7 +30,7 @@ final class ArticlePageTest extends DatabaseTestCase
         $document = new DOMDocument();
         $document->loadHTML('<?xml encoding="UTF-8">' . $response->body, LIBXML_NOERROR | LIBXML_NOWARNING);
         $xpath = new DOMXPath($document);
-        self::assertCount(3, $xpath->query('//section[@aria-labelledby="similar-articles"]/article'));
+        self::assertCount(3, $xpath->query('//section[@aria-labelledby="related-title"]/article'));
         self::assertCount(2, $xpath->query('//main/nav/a'));
     }
 
