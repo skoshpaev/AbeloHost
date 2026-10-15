@@ -7,7 +7,6 @@ use PhpCsFixer\Finder;
 
 require __DIR__ . '/vendor/autoload.php';
 
-/** @noinspection SpellCheckingInspection */
 return new Config()->setCacheFile(__DIR__ . '/var/cache/.php_cs')->setFinder(
         Finder::create()->in(__DIR__)->exclude([
                 '.git',
