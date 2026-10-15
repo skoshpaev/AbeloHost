@@ -33,6 +33,11 @@ final class Application
         return new Response($response->body, $response->status, $response->headers + [
             'Content-Type' => 'text/html; charset=UTF-8',
             'Cache-Control' => 'no-store',
+            'Content-Security-Policy' => "default-src 'self'; img-src 'self'; style-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'DENY',
+            'Referrer-Policy' => 'strict-origin-when-cross-origin',
+            'Permissions-Policy' => 'camera=(), microphone=(), geolocation=()',
         ]);
     }
 }
