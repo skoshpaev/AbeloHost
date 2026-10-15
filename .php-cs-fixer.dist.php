@@ -1,0 +1,133 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Fixer\FinalPublicClassFixer;
+use App\Fixer\NoNonAsciiCommentsFixer;
+use PhpCsFixer\Config;
+use PhpCsFixer\Finder;
+
+require __DIR__ . '/vendor/autoload.php';
+
+return (new Config())
+    ->registerCustomFixers([
+        new FinalPublicClassFixer(),
+        new NoNonAsciiCommentsFixer(),
+    ])
+    ->setCacheFile(__DIR__ . '/var/cache/.php_cs')
+    ->setFinder(
+        Finder::create()
+            ->in(__DIR__)
+            ->exclude([
+                '.git',
+                '.idea',
+                '.phpunit.cache',
+                'coverage',
+                'node_modules',
+                'storage/logs',
+                'storage/smarty',
+                'var/cache',
+                'vendor',
+            ])
+            ->name('*.php')
+            ->notPath([
+                'Kernel',
+                'preload',
+                'bundles',
+                'index',
+                'bootstrap',
+            ])
+            ->append([__FILE__]),
+    )
+    ->setRiskyAllowed(true)
+    ->setRules([
+        '@PER-CS' => true,
+        '@PER-CS:risky' => true,
+        '@PHP80Migration' => true,
+        '@PHP80Migration:risky' => true,
+        '@PHP81Migration' => true,
+        '@PHP82Migration' => true,
+        '@PHP83Migration' => true,
+        '@PHPUnit84Migration:risky' => true,
+        '@PHPUnit100Migration:risky' => true,
+        '@PhpCsFixer' => true,
+        '@PhpCsFixer:risky' => true,
+        '@PSR12' => true,
+        'ordered_imports' => [
+            'imports_order' => ['class', 'function', 'const'],
+            'sort_algorithm' => 'alpha',
+        ],
+        'concat_space' => ['spacing' => 'one'],
+        'cast_spaces' => ['space' => 'none'],
+        'binary_operator_spaces' => [
+            'operators' => [
+                '=>' => 'single_space',
+                '=' => 'single_space',
+            ],
+        ],
+        'phpdoc_to_comment' => false,
+        'phpdoc_separation' => false,
+        'phpdoc_types_order' => ['null_adjustment' => 'always_last'],
+        'phpdoc_align' => false,
+        'operator_linebreak' => false,
+        'global_namespace_import' => true,
+        'blank_line_before_statement' => false,
+        'multiline_whitespace_before_semicolons' => ['strategy' => 'no_multi_line'],
+        'fopen_flags' => ['b_mode' => true],
+        'php_unit_strict' => false,
+        'php_unit_test_class_requires_covers' => false,
+        'php_unit_test_case_static_method_calls' => ['call_type' => 'self'],
+        'php_unit_data_provider_static' => false,
+        'yoda_style' => false,
+        'final_public_method_for_abstract_class' => true,
+        'self_static_accessor' => true,
+        'static_lambda' => true,
+        'declare_strict_types' => true,
+        'method_argument_space' => ['on_multiline' => 'ensure_fully_multiline'],
+        'single_line_empty_body' => false,
+        'single_import_per_statement' => true,
+        'no_leading_import_slash' => true,
+        'phpdoc_order' => true,
+        'phpdoc_line_span' => ['property' => 'single', 'method' => 'multi', 'const' => 'single'],
+        'trailing_comma_in_multiline' => [
+            'elements' => ['arrays', 'arguments', 'parameters'],
+        ],
+        'align_multiline_comment' => ['comment_type' => 'all_multiline'],
+        'array_syntax' => ['syntax' => 'short'],
+        'class_attributes_separation' => [
+            'elements' => [
+                'method' => 'one',
+            ],
+        ],
+        'declare_equal_normalize' => ['space' => 'none'],
+        'type_declaration_spaces' => true,
+        'no_blank_lines_after_phpdoc' => true,
+        'no_empty_statement' => true,
+        'no_empty_comment' => true,
+        'no_superfluous_phpdoc_tags' => false,
+        'no_trailing_comma_in_singleline' => true,
+        'blank_lines_before_namespace' => true,
+        'blank_line_after_namespace' => true,
+        'compact_nullable_type_declaration' => true,
+        'indentation_type' => true,
+        'no_extra_blank_lines' => true,
+        'no_closing_tag' => true,
+        'no_whitespace_in_blank_line' => true,
+        'single_blank_line_at_eof' => true,
+        'unary_operator_spaces' => true,
+        'increment_style' => false,
+        'native_function_invocation' => false,
+        'use_arrow_functions' => false,
+        'App/final_public_class_fixer' => [
+            'exclude_namespaces' => [
+                'App\\Repository',
+                'App\\Service\\Search',
+            ],
+        ],
+        'App/no_non_ascii_comments_fixer' => true,
+        'escape_implicit_backslashes' => [
+            'double_quoted' => true,
+            'heredoc_syntax' => true,
+            'single_quoted' => false,
+        ],
+    ]);

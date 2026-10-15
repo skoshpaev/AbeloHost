@@ -4,6 +4,7 @@
 /.env
 /.phpunit.cache/
 /coverage/
+/var/cache/.php_cs
 /storage/smarty/*
 !/storage/smarty/.gitkeep
 /storage/logs/*
